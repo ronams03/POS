@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS System - Basic Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { color: green; font-weight: bold; }
+        .error { color: red; font-weight: bold; }
+        .loading { color: blue; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1><i class="fas fa-store"></i> POS System - Basic Functionality Test</h1>
+        
+        <div class="test-section">
+            <h3>1. API Connection Test</h3>
+            <div id="api-test-results">
+                <p class="loading">Testing API connections...</p>
+            </div>
+            <button class="btn btn-primary" onclick="testAPIs()">Test APIs</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>2. Database Data Test</h3>
+            <div id="data-test-results">
+                <p class="loading">Loading data...</p>
+            </div>
+            <button class="btn btn-info" onclick="testData()">Test Data</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>3. Basic Dashboard</h3>
+            <div class="row">
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Products</h5>
+                            <h2 id="product-count" class="text-primary">-</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Categories</h5>
+                            <h2 id="category-count" class="text-success">-</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Customers</h5>
+                            <h2 id="customer-count" class="text-info">-</h2>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card text-center">
+                        <div class="card-body">
+                            <h5 class="card-title">Today's Sales</h5>
+                            <h2 id="sales-amount" class="text-warning">-</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button class="btn btn-success mt-3" onclick="loadDashboard()">Load Dashboard</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>4. Product List</h3>
+            <div id="product-list">
+                <p class="loading">Click button to load products...</p>
+            </div>
+            <button class="btn btn-warning" onclick="loadProducts()">Load Products</button>
+        </div>
+        
+        <div class="test-section">
+            <h3>5. System Actions</h3>
+            <div class="d-grid gap-2 d-md-flex">
+                <a href="diagnose.php" class="btn btn-secondary">Run Diagnostics</a>
+                <a href="fix-system.php" class="btn btn-danger">Auto-Fix System</a>
+                <a href="setup.php" class="btn btn-primary">Setup Wizard</a>
+                <a href="index.php" class="btn btn-success">Full POS System</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Basic API testing functions
+        async function testAPIs() {
+            const resultsDiv = document.getElementById('api-test-results');
+            resultsDiv.innerHTML = '<p class="loading">Testing APIs...</p>';
+            
+            const apis = [
+                { name: 'Dashboard Stats', url: 'api/dashboard-stats.php' },
+                { name: 'Products', url: 'api/products.php' },
+                { name: 'Categories', url: 'api/categories.php' },
+                { name: 'Customers', url: 'api/customers.php' }
+            ];
+            
+            let results = '';
+            
+            for (const api of apis) {
+                try {
+                    const response = await fetch(api.url);
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        results += `<p class="success">✓ ${api.name}: Working</p>`;
+                    } else {
+                        results += `<p class="error">✗ ${api.name}: Error - ${data.message || 'Unknown error'}</p>`;
+                    }
+                } catch (error) {
+                    results += `<p class="error">✗ ${api.name}: Failed - ${error.message}</p>`;
+                }
+            }
+            
+            resultsDiv.innerHTML = results;
+        }
+        
+        async function testData() {
+            const resultsDiv = document.getElementById('data-test-results');
+            resultsDiv.innerHTML = '<p class="loading">Testing data...</p>';
+            
+            try {
+                const response = await fetch('api/dashboard-stats.php');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const stats = data.stats;
+                    let results = '<h5>Database Statistics:</h5>';
+                    results += `<p>Products: ${stats.total_products || 0}</p>`;
+                    results += `<p>Customers: ${stats.total_customers || 0}</p>`;
+                    results += `<p>Today's Sales: $${parseFloat(stats.today_sales || 0).toFixed(2)}</p>`;
+                    results += `<p>Low Stock Items: ${stats.low_stock_count || 0}</p>`;
+                    results += '<p class="success">✓ Data loaded successfully</p>';
+                    resultsDiv.innerHTML = results;
+                } else {
+                    resultsDiv.innerHTML = `<p class="error">✗ Error loading data: ${data.message}</p>`;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `<p class="error">✗ Failed to load data: ${error.message}</p>`;
+            }
+        }
+        
+        async function loadDashboard() {
+            try {
+                const response = await fetch('api/dashboard-stats.php');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const stats = data.stats;
+                    document.getElementById('product-count').textContent = stats.total_products || 0;
+                    document.getElementById('category-count').textContent = '5'; // Default categories
+                    document.getElementById('customer-count').textContent = stats.total_customers || 0;
+                    document.getElementById('sales-amount').textContent = '$' + parseFloat(stats.today_sales || 0).toFixed(2);
+                } else {
+                    console.error('Dashboard error:', data.message);
+                }
+            } catch (error) {
+                console.error('Dashboard load error:', error);
+            }
+        }
+        
+        async function loadProducts() {
+            const productDiv = document.getElementById('product-list');
+            productDiv.innerHTML = '<p class="loading">Loading products...</p>';
+            
+            try {
+                const response = await fetch('api/products.php?limit=5');
+                const data = await response.json();
+                
+                if (data.success && data.products) {
+                    let html = '<div class="table-responsive"><table class="table table-striped">';
+                    html += '<thead><tr><th>Name</th><th>Code</th><th>Price</th><th>Stock</th></tr></thead><tbody>';
+                    
+                    data.products.forEach(product => {
+                        html += `<tr>
+                            <td>${product.name}</td>
+                            <td>${product.product_code}</td>
+                            <td>$${parseFloat(product.price).toFixed(2)}</td>
+                            <td>${product.stock_quantity}</td>
+                        </tr>`;
+                    });
+                    
+                    html += '</tbody></table></div>';
+                    html += `<p class="success">✓ Loaded ${data.products.length} products</p>`;
+                    productDiv.innerHTML = html;
+                } else {
+                    productDiv.innerHTML = `<p class="error">✗ Error loading products: ${data.message || 'Unknown error'}</p>`;
+                }
+            } catch (error) {
+                productDiv.innerHTML = `<p class="error">✗ Failed to load products: ${error.message}</p>`;
+            }
+        }
+        
+        // Auto-load dashboard on page load
+        window.addEventListener('load', () => {
+            loadDashboard();
+        });
+    </script>
+</body>
+</html>

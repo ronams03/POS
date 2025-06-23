@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>POS System - Settings Test</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            background: #f8f9fa;
+        }
+        .test-result {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .test-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .test-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .test-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1><i class="fas fa-cog"></i> POS System - Settings Functionality Test</h1>
+        <p class="lead">This page tests the "Save All Settings" button functionality.</p>
+
+        <div class="test-section">
+            <h3>1. Settings API Test</h3>
+            <button class="btn btn-primary" onclick="testSettingsAPI()">Test Settings API</button>
+            <div id="api-test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>2. Settings Form Test</h3>
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>Sample Settings Form</h5>
+                    <form id="testSettingsForm">
+                        <div class="mb-3">
+                            <label for="companyName" class="form-label">Company Name</label>
+                            <input type="text" class="form-control" id="companyName" value="Test Company">
+                        </div>
+                        <div class="mb-3">
+                            <label for="companyEmail" class="form-label">Company Email</label>
+                            <input type="email" class="form-control" id="companyEmail" value="test@company.com">
+                        </div>
+                        <div class="mb-3">
+                            <label for="taxRate" class="form-label">Tax Rate (%)</label>
+                            <input type="number" class="form-control" id="taxRate" value="10" step="0.01">
+                        </div>
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="enableLowStockAlerts" checked>
+                                <label class="form-check-label" for="enableLowStockAlerts">
+                                    Enable Low Stock Alerts
+                                </label>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="col-md-6">
+                    <h5>Test Actions</h5>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-success" onclick="testSaveSettings()">
+                            <i class="fas fa-save"></i> Test Save Settings
+                        </button>
+                        <button class="btn btn-info" onclick="testLoadSettings()">
+                            <i class="fas fa-download"></i> Test Load Settings
+                        </button>
+                        <button class="btn btn-warning" onclick="testValidation()">
+                            <i class="fas fa-check"></i> Test Validation
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div id="form-test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>3. JavaScript Function Test</h3>
+            <div class="row">
+                <div class="col-md-4">
+                    <button class="btn btn-primary" onclick="testCollectSettings()">
+                        <i class="fas fa-collect"></i> Test Collect Settings
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-secondary" onclick="testValidateSettings()">
+                        <i class="fas fa-check-circle"></i> Test Validate Settings
+                    </button>
+                </div>
+                <div class="col-md-4">
+                    <button class="btn btn-success" onclick="testSaveAllSettings()">
+                        <i class="fas fa-save"></i> Test Save All Settings
+                    </button>
+                </div>
+            </div>
+            <div id="js-test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>4. Full Settings Modal Test</h3>
+            <button class="btn btn-lg btn-primary" onclick="openFullSettingsModal()">
+                <i class="fas fa-cog"></i> Open Full Settings Modal
+            </button>
+            <div id="modal-test-results"></div>
+        </div>
+
+        <div class="test-section">
+            <h3>5. Quick Actions</h3>
+            <div class="d-grid gap-2 d-md-flex justify-content-md-center">
+                <a href="index.php" class="btn btn-success btn-lg">
+                    <i class="fas fa-store"></i> Go to Full POS System
+                </a>
+                <a href="test-clickable.html" class="btn btn-info btn-lg">
+                    <i class="fas fa-mouse-pointer"></i> Test All Buttons
+                </a>
+                <a href="diagnose.php" class="btn btn-warning btn-lg">
+                    <i class="fas fa-stethoscope"></i> Run Diagnostics
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
+        <div id="toast-container"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/settings.js"></script>
+    <script>
+        function showTestResult(containerId, message, type) {
+            const container = document.getElementById(containerId);
+            if (container) {
+                const result = document.createElement('div');
+                result.className = `test-result test-${type}`;
+                result.innerHTML = `<i class="fas fa-${type === 'success' ? 'check' : type === 'error' ? 'times' : 'info'}"></i> ${message}`;
+                container.appendChild(result);
+                
+                // Auto-remove after 10 seconds
+                setTimeout(() => {
+                    result.remove();
+                }, 10000);
+            }
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast align-items-center text-white bg-${type} border-0`;
+            toast.setAttribute('role', 'alert');
+            toast.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">${message}</div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+                </div>
+            `;
+            container.appendChild(toast);
+            
+            const bsToast = new bootstrap.Toast(toast);
+            bsToast.show();
+            
+            toast.addEventListener('hidden.bs.toast', () => {
+                toast.remove();
+            });
+        }
+
+        async function testSettingsAPI() {
+            showTestResult('api-test-results', 'Testing Settings API...', 'info');
+            
+            try {
+                // Test GET
+                const getResponse = await fetch('api/settings.php');
+                const getData = await getResponse.json();
+                
+                if (getData.success) {
+                    showTestResult('api-test-results', '✓ GET Settings API - Working', 'success');
+                } else {
+                    showTestResult('api-test-results', '✗ GET Settings API - Error: ' + getData.message, 'error');
+                }
+
+                // Test POST
+                const testSettings = {
+                    test_setting: 'test_value',
+                    company_name: 'Test Company API'
+                };
+
+                const postResponse = await fetch('api/settings.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ settings: testSettings })
+                });
+
+                const postData = await postResponse.json();
+                
+                if (postData.success) {
+                    showTestResult('api-test-results', '✓ POST Settings API - Working', 'success');
+                } else {
+                    showTestResult('api-test-results', '✗ POST Settings API - Error: ' + postData.message, 'error');
+                }
+
+            } catch (error) {
+                showTestResult('api-test-results', '✗ Settings API - Network Error: ' + error.message, 'error');
+            }
+        }
+
+        async function testSaveSettings() {
+            showTestResult('form-test-results', 'Testing Save Settings...', 'info');
+            
+            const settings = {
+                company_name: document.getElementById('companyName').value,
+                company_email: document.getElementById('companyEmail').value,
+                tax_rate: document.getElementById('taxRate').value,
+                enable_low_stock_alerts: document.getElementById('enableLowStockAlerts').checked ? '1' : '0'
+            };
+
+            try {
+                const response = await fetch('api/settings.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ settings: settings })
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showTestResult('form-test-results', '✓ Settings saved successfully!', 'success');
+                    showToast('Settings saved successfully!', 'success');
+                } else {
+                    showTestResult('form-test-results', '✗ Error saving settings: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showTestResult('form-test-results', '✗ Network error: ' + error.message, 'error');
+            }
+        }
+
+        async function testLoadSettings() {
+            showTestResult('form-test-results', 'Testing Load Settings...', 'info');
+            
+            try {
+                const response = await fetch('api/settings.php');
+                const data = await response.json();
+                
+                if (data.success) {
+                    showTestResult('form-test-results', '✓ Settings loaded successfully!', 'success');
+                    
+                    // Populate form with loaded settings
+                    if (data.settings.company_name) {
+                        document.getElementById('companyName').value = data.settings.company_name.value || '';
+                    }
+                    if (data.settings.company_email) {
+                        document.getElementById('companyEmail').value = data.settings.company_email.value || '';
+                    }
+                    if (data.settings.tax_rate) {
+                        document.getElementById('taxRate').value = data.settings.tax_rate.value || '10';
+                    }
+                    if (data.settings.enable_low_stock_alerts) {
+                        document.getElementById('enableLowStockAlerts').checked = data.settings.enable_low_stock_alerts.value === '1';
+                    }
+                    
+                    showToast('Settings loaded and populated!', 'info');
+                } else {
+                    showTestResult('form-test-results', '✗ Error loading settings: ' + data.message, 'error');
+                }
+            } catch (error) {
+                showTestResult('form-test-results', '✗ Network error: ' + error.message, 'error');
+            }
+        }
+
+        function testValidation() {
+            showTestResult('form-test-results', 'Testing Validation...', 'info');
+            
+            // Test with invalid data
+            const originalEmail = document.getElementById('companyEmail').value;
+            const originalTax = document.getElementById('taxRate').value;
+            
+            // Set invalid values
+            document.getElementById('companyEmail').value = 'invalid-email';
+            document.getElementById('taxRate').value = '150';
+            
+            if (window.posSystem && window.posSystem.validateSettings) {
+                const errors = window.posSystem.validateSettings();
+                if (errors.length > 0) {
+                    showTestResult('form-test-results', '✓ Validation working - Found ' + errors.length + ' errors', 'success');
+                    showTestResult('form-test-results', 'Errors: ' + errors.join(', '), 'info');
+                } else {
+                    showTestResult('form-test-results', '✗ Validation not working - No errors found', 'error');
+                }
+            } else {
+                showTestResult('form-test-results', '✗ Validation function not available', 'error');
+            }
+            
+            // Restore original values
+            document.getElementById('companyEmail').value = originalEmail;
+            document.getElementById('taxRate').value = originalTax;
+        }
+
+        function testCollectSettings() {
+            showTestResult('js-test-results', 'Testing Collect Settings...', 'info');
+            
+            if (window.posSystem && window.posSystem.collectAllSettings) {
+                try {
+                    const settings = window.posSystem.collectAllSettings();
+                    showTestResult('js-test-results', '✓ Collect Settings working - Found ' + Object.keys(settings).length + ' settings', 'success');
+                    console.log('Collected settings:', settings);
+                } catch (error) {
+                    showTestResult('js-test-results', '✗ Collect Settings error: ' + error.message, 'error');
+                }
+            } else {
+                showTestResult('js-test-results', '✗ Collect Settings function not available', 'error');
+            }
+        }
+
+        function testValidateSettings() {
+            showTestResult('js-test-results', 'Testing Validate Settings...', 'info');
+            
+            if (window.posSystem && window.posSystem.validateSettings) {
+                try {
+                    const errors = window.posSystem.validateSettings();
+                    showTestResult('js-test-results', '✓ Validate Settings working - ' + errors.length + ' errors found', 'success');
+                } catch (error) {
+                    showTestResult('js-test-results', '✗ Validate Settings error: ' + error.message, 'error');
+                }
+            } else {
+                showTestResult('js-test-results', '✗ Validate Settings function not available', 'error');
+            }
+        }
+
+        async function testSaveAllSettings() {
+            showTestResult('js-test-results', 'Testing Save All Settings...', 'info');
+            
+            if (window.posSystem && window.posSystem.saveAllSettings) {
+                try {
+                    await window.posSystem.saveAllSettings();
+                    showTestResult('js-test-results', '✓ Save All Settings function executed', 'success');
+                } catch (error) {
+                    showTestResult('js-test-results', '✗ Save All Settings error: ' + error.message, 'error');
+                }
+            } else {
+                showTestResult('js-test-results', '✗ Save All Settings function not available', 'error');
+            }
+        }
+
+        function openFullSettingsModal() {
+            showTestResult('modal-test-results', 'Opening full settings modal...', 'info');
+            
+            if (window.posSystem && window.posSystem.showSettings) {
+                try {
+                    window.posSystem.showSettings();
+                    showTestResult('modal-test-results', '✓ Settings modal opened successfully', 'success');
+                } catch (error) {
+                    showTestResult('modal-test-results', '✗ Error opening settings modal: ' + error.message, 'error');
+                }
+            } else {
+                showTestResult('modal-test-results', '✗ Show Settings function not available', 'error');
+            }
+        }
+
+        // Test global saveAllSettings function
+        function testGlobalSaveAllSettings() {
+            if (typeof saveAllSettings === 'function') {
+                showTestResult('js-test-results', '✓ Global saveAllSettings function available', 'success');
+                try {
+                    saveAllSettings();
+                    showTestResult('js-test-results', '✓ Global saveAllSettings executed', 'success');
+                } catch (error) {
+                    showTestResult('js-test-results', '✗ Global saveAllSettings error: ' + error.message, 'error');
+                }
+            } else {
+                showTestResult('js-test-results', '✗ Global saveAllSettings function not available', 'error');
+            }
+        }
+
+        // Run initial tests when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                // Test if POS system is loaded
+                if (window.posSystem) {
+                    showTestResult('js-test-results', '✓ POS System loaded successfully', 'success');
+                } else {
+                    showTestResult('js-test-results', '✗ POS System not loaded', 'error');
+                }
+
+                // Test global functions
+                testGlobalSaveAllSettings();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
